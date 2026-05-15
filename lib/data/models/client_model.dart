@@ -6,5 +6,34 @@ class ClientModel {
   final DateTime updatedAt;
   final String signature;
 
-  ClientModel({required this.id, required this.name, required this.stamps, required this.historyIds, required this.updatedAt, required this.signature});
+  ClientModel({
+    required this.id,
+    required this.name,
+    required this.stamps,
+    required this.historyIds,
+    required this.updatedAt,
+    required this.signature,
+  });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'name': name,
+      'stamps': stamps,
+      'historyIds': historyIds,
+      'updatedAt': updatedAt.toIso8601String(),
+      'signature': signature,
+    };
+  }
+
+  factory ClientModel.fromMap(Map map) {
+    return ClientModel(
+      id: map['id'],
+      name: map['name'],
+      stamps: map['stamps'],
+      historyIds: List<String>.from(map['historyIds']),
+      updatedAt: DateTime.parse(map['updatedAt']),
+      signature: map['signature'],
+    );
+  }
 }
