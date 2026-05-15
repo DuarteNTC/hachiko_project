@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'features/artist/screens/artist_scan_screen.dart';
 
 import 'features/client/screens/client_home_screen.dart';
 
@@ -28,7 +29,7 @@ class MyApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: const ClientHomeScreen(),
+      home: const ArtistScanScreen(),
     );
   }
 }
