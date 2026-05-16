@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
+import '../../../data/repositories/local_repository.dart';
+
 class ArtistScanScreen extends StatefulWidget {
   const ArtistScanScreen({super.key});
 
@@ -10,8 +12,9 @@ class ArtistScanScreen extends StatefulWidget {
 
 class _ArtistScanScreenState extends State<ArtistScanScreen> {
   bool scanned = false;
+  final repo = LocalRepository();
 
-  void handleDetect(BarcodeCapture capture) {
+  Future<void> handleDetect(BarcodeCapture capture) async {
     if (scanned) return;
 
     final code = capture.barcodes.first.rawValue;
@@ -20,19 +23,23 @@ class _ArtistScanScreenState extends State<ArtistScanScreen> {
 
     scanned = true;
 
+    final updated = await repo.addStamp(code);
+
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Cliente detectado'),
-        content: Text(code),
+        title: const Text('Carimbo realizado'),
+        content: updated == null
+            ? const Text('Cliente não encontrado')
+            : Text('Novo total: ${updated.stamps}'),
         actions: [
           TextButton(
             onPressed: () {
               scanned = false;
               Navigator.pop(context);
             },
-            child: const Text('Fechar'),
-          ),
+            child: const Text('OK'),
+          )
         ],
       ),
     );
@@ -41,9 +48,7 @@ class _ArtistScanScreenState extends State<ArtistScanScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Scanner Tattoo'),
-      ),
+      appBar: AppBar(title: const Text('Scanner Tattoo')),
       body: MobileScanner(
         onDetect: handleDetect,
       ),
