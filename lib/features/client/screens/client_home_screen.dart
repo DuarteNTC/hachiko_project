@@ -23,7 +23,7 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
   }
 
   Future<void> loadClient() async {
-    final saved = repo.getClient();
+    final saved = repo.getCurrentClient();
 
     if (saved != null) {
       setState(() => client = saved);
@@ -39,7 +39,7 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
       signature: "pending",
     );
 
-    await repo.saveClient(newClient);
+    await repo.saveCurrentClient(newClient);
 
     setState(() => client = newClient);
   }

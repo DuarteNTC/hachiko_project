@@ -5,10 +5,18 @@ class LocalRepository {
   final Box box = Hive.box('clients');
 
   Future<void> saveClient(ClientModel client) async {
-    await box.put('current_client', client.toMap());
+    await box.put(client.id, client.toMap());
   }
 
-  ClientModel? getClient() {
+  ClientModel? getClientById(String id) {
+    final data = box.get(id);
+
+    if (data == null) return null;
+
+    return ClientModel.fromMap(Map<String, dynamic>.from(data));
+  }
+
+  ClientModel? getCurrentClient() {
     final data = box.get('current_client');
 
     if (data == null) return null;
@@ -16,23 +24,36 @@ class LocalRepository {
     return ClientModel.fromMap(Map<String, dynamic>.from(data));
   }
 
-  Future<ClientModel?> addStamp(String clientId) async {
-    final client = getClient();
+  Future<void> saveCurrentClient(ClientModel client) async {
+    await box.put('current_client', client.toMap());
+    await box.put(client.id, client.toMap());
+  }
 
-    if (client == null) return null;
-    if (client.id != clientId) return null;
+  Future<ClientModel> addStamp(String clientId) async {
+    final existing = getClientById(clientId);
 
-    final updated = ClientModel(
-      id: client.id,
-      name: client.name,
-      stamps: client.stamps + 1,
-      historyIds: client.historyIds,
+    if (existing != null) {
+      final updated = existing.copyWith(
+        stamps: existing.stamps + 1,
+        updatedAt: DateTime.now(),
+      );
+
+      await saveClient(updated);
+
+      return updated;
+    }
+
+    final created = ClientModel(
+      id: clientId,
+      name: "Cliente",
+      stamps: 1,
+      historyIds: [],
       updatedAt: DateTime.now(),
-      signature: client.signature,
+      signature: "pending",
     );
 
-    await saveClient(updated);
+    await saveClient(created);
 
-    return updated;
+    return created;
   }
 }

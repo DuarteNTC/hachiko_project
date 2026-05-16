@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:permission_handler/permission_handler.dart';
 
+import '../../../core/bluetooth_service.dart';
 import '../../../data/repositories/local_repository.dart';
 
 class ArtistScanScreen extends StatefulWidget {
@@ -12,7 +14,22 @@ class ArtistScanScreen extends StatefulWidget {
 
 class _ArtistScanScreenState extends State<ArtistScanScreen> {
   bool scanned = false;
+
   final repo = LocalRepository();
+  final bluetooth = BluetoothService();
+
+  @override
+  void initState() {
+    super.initState();
+    requestPermissions();
+  }
+
+  Future<void> requestPermissions() async {
+    await Permission.camera.request();
+    await Permission.bluetoothScan.request();
+    await Permission.bluetoothConnect.request();
+    await Permission.location.request();
+  }
 
   Future<void> handleDetect(BarcodeCapture capture) async {
     if (scanned) return;
@@ -24,6 +41,17 @@ class _ArtistScanScreenState extends State<ArtistScanScreen> {
     scanned = true;
 
     final updated = await repo.addStamp(code);
+
+    if (updated != null) {
+      await bluetooth.scanAndConnect(updated.id);
+
+      await bluetooth.sendStamp(
+        clientId: updated.id,
+        stamps: updated.stamps,
+      );
+    }
+
+    if (!mounted) return;
 
     showDialog(
       context: context,
@@ -39,7 +67,7 @@ class _ArtistScanScreenState extends State<ArtistScanScreen> {
               Navigator.pop(context);
             },
             child: const Text('OK'),
-          )
+          ),
         ],
       ),
     );
@@ -48,7 +76,10 @@ class _ArtistScanScreenState extends State<ArtistScanScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Scanner Tattoo')),
+      appBar: AppBar(
+        title: const Text('Scanner Tattoo'),
+        centerTitle: true,
+      ),
       body: MobileScanner(
         onDetect: handleDetect,
       ),

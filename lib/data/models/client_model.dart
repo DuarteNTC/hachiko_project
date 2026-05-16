@@ -36,4 +36,21 @@ class ClientModel {
       signature: map['signature'],
     );
   }
+
+  ClientModel copyWith({
+    String? name,
+    int? stamps,
+    List<String>? historyIds,
+    DateTime? updatedAt,
+    String? signature,
+  }) {
+    return ClientModel(
+      id: id,
+      name: name ?? this.name,
+      stamps: stamps ?? this.stamps,
+      historyIds: historyIds ?? this.historyIds,
+      updatedAt: updatedAt ?? this.updatedAt,
+      signature: signature ?? this.signature,
+    );
+  }
 }
