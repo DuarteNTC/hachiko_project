@@ -4,10 +4,12 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 class BluetoothService {
   BluetoothCharacteristic? writeChar;
 
-  Future<void> scanAndConnect(String targetName) async {
-    await FlutterBluePlus.startScan(timeout: const Duration(seconds: 5));
+  Future<bool> scanAndConnect(String targetName) async {
+    bool connected = false;
 
-    FlutterBluePlus.scanResults.listen((results) async {
+    await FlutterBluePlus.startScan(timeout: const Duration(seconds: 6));
+
+    await for (final results in FlutterBluePlus.scanResults) {
       for (final result in results) {
         if (result.device.platformName == targetName) {
           await FlutterBluePlus.stopScan();
@@ -20,13 +22,16 @@ class BluetoothService {
             for (final c in service.characteristics) {
               if (c.properties.write) {
                 writeChar = c;
-                return;
+                connected = true;
+                return connected;
               }
             }
           }
         }
       }
-    });
+    }
+
+    return connected;
   }
 
   Future<void> sendStamp({
@@ -38,8 +43,12 @@ class BluetoothService {
     final payload = jsonEncode({
       'clientId': clientId,
       'stamps': stamps,
+      'timestamp': DateTime.now().millisecondsSinceEpoch,
     });
 
-    await writeChar!.write(utf8.encode(payload));
+    await writeChar!.write(
+      utf8.encode(payload),
+      withoutResponse: false,
+    );
   }
 }

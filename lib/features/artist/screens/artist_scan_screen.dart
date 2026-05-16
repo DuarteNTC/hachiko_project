@@ -35,7 +35,6 @@ class _ArtistScanScreenState extends State<ArtistScanScreen> {
     if (scanned) return;
 
     final code = capture.barcodes.first.rawValue;
-
     if (code == null) return;
 
     scanned = true;
@@ -43,12 +42,14 @@ class _ArtistScanScreenState extends State<ArtistScanScreen> {
     final updated = await repo.addStamp(code);
 
     if (updated != null) {
-      await bluetooth.scanAndConnect(updated.id);
+      final connected = await bluetooth.scanAndConnect(updated.id);
 
-      await bluetooth.sendStamp(
-        clientId: updated.id,
-        stamps: updated.stamps,
-      );
+      if (connected) {
+        await bluetooth.sendStamp(
+          clientId: updated.id,
+          stamps: updated.stamps,
+        );
+      }
     }
 
     if (!mounted) return;
